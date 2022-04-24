@@ -1,0 +1,36 @@
+.label savefile=$2004 {
+}
+.label testdata=$21bb
+.label deletefile=$2017 {
+}
+.label buffer=$20bb
+.label fileid=$21cd
+.label filename=$21c0
+.label openfile=$2032 {
+}
+.label testdatalen=$5
+.namespace file {
+  .label smload=$208d {
+    .label DST=$2099
+    .label loop=$2095
+    .label done=$20a3
+  }
+  .label smsave=$20a4 {
+    .label SRC=$20b0
+    .label loop=$20af
+    .label SIZE=$20b6
+  }
+  .label ids=$20ba
+  .label delete=$2069 {
+  }
+  .label close=$2086 {
+  }
+  .label open=$2040 {
+    .label good=$2065
+  }
+}
+.label fnamelen=$d
+.label start=$2000 {
+}
+.label loadfile=$2021 {
+}
