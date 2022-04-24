@@ -3,3 +3,4 @@
 /c64debugger.vcxproj.user
 /imgui.ini
 /settings.json
+*.sublime-*
