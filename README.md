@@ -6,7 +6,7 @@ This is a Visual Studio 2022 Windows project building with the C++20 toolset.
 
 ## Submodules
  - [ImGui](https://github.com/ocornut/imgui)
- - [Nlohmann Json](https://github.com/nlohmann/json)
+ - [Nlohmann Json](https://github.com/nlohmann/json), Not really a submodule as I only needed the single file header.
 
 ## Usage
  - I use [KickAssembler](http://www.theweb.dk/KickAssembler/Main.html#frontpage) for my projects so symbols are loaded from a .vs file.
