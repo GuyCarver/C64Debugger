@@ -205,6 +205,8 @@ void FromResponse( const Response &arResponse )
 //----------------------------------------------------------------
 void Display( bool abInputEnabled )
 {
+	ImGui::SetNextWindowPos(ImVec2(0, 20), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(268, 78), ImGuiCond_FirstUseEver);
 	ImGui::Begin("Registers", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
 	float fs = ImGui::GetFontSize() - 3.0f;

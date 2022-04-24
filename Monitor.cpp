@@ -177,15 +177,23 @@ void UpdateStatus(  )
 }
 
 //----------------------------------------------------------------
-bool Init(  )
+bool Init( void *apFontData, int32_t aFontDataSize )
 {
 	ImGuiIO &io = ImGui::GetIO();
 	io.Fonts->AddFontDefault();
-//	io.Fonts->AddFontFromFileTTF("imgui\\misc\\fonts\\ProggyClean.ttf", FONTSIZE);
-	pC64Font = io.Fonts->AddFontFromFileTTF("data/C64_Pro_Mono-STYLE.ttf", FONTSIZE);
+	if (apFontData) {
+		pC64Font = io.Fonts->AddFontFromMemoryTTF(apFontData, aFontDataSize, FONTSIZE);
+	}
 	io.Fonts->Build();
-	//Change fallback char used for unrecognized char to '.'
-	pC64Font->FallbackGlyph = pC64Font->FindGlyph(static_cast<ImWchar>('.'));
+
+	//If load failed, just use the default font
+	if (pC64Font) {
+		//Change fallback char used for unrecognized char to '.'
+		pC64Font->FallbackGlyph = pC64Font->FindGlyph(static_cast<ImWchar>('.'));
+	}
+	else {
+		pC64Font = ImGui::GetFont();
+	}
 
 	[[maybe_unused]] auto p = new Thread();
 
@@ -232,7 +240,8 @@ void Display(  )
 	Labels::Display();
 	BreakPoints::Display();
 
-	ImGui::SetNextWindowSize(ImVec2(112, 112), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowPos(ImVec2(268, 18), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(247, 78), ImGuiCond_FirstUseEver);
 	ImGui::Begin("Monitor", nullptr
 		, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize
 		| ImGuiWindowFlags_NoResize);

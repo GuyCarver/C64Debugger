@@ -53,7 +53,7 @@ namespace Monitor
 
 	//----------------------------------------------------------------
 	///Initialize Communications with VICE
-	bool Init(  );
+	bool Init( void *apFontData, int32_t aFontDataSize );
 
 	//----------------------------------------------------------------
 	///Flush any pending commnds from the queue

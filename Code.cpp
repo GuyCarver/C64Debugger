@@ -136,6 +136,7 @@ public:
 	{
 		InputEnabled = abInputEnabled;
 
+		ImGui::SetNextWindowPos(ImVec2(0, 95), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(386, 512), ImGuiCond_FirstUseEver);
 		ImGui::Begin("Code", nullptr, ImGuiWindowFlags_NoResize);
 

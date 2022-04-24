@@ -129,6 +129,10 @@ public:
 
 			//If we need new data send request
 			if (Enabled && !QContinuous()) {
+				//Make sure an address is set
+				if (Address == 0xffff) {
+					SetAddress(0x1000);
+				}
 				Refresh(true);
 			}
 
@@ -148,7 +152,7 @@ public:
 		Refresh();								//Make sure data is up to date
 
 		//Set start position and size on first run
-		ImGui::SetNextWindowPos(ImVec2(610.0f * IDNum, 200.0f), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowPos(ImVec2(384.0f, 95.0f + (290.0f * IDNum)), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(610.0f, 350.0f), ImGuiCond_FirstUseEver);
 
 		ImGui::Begin(ID, &Enabled, ImGuiWindowFlags_NoResize);
