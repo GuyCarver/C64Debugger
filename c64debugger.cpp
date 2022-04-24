@@ -116,7 +116,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_C64DEBUGGER));
 
-	bool show_demo_window = true;
+	bool show_demo_window = false;
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 	MSG msg;
@@ -279,7 +279,20 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(),
 		g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
 
-	Monitor::Init();
+
+	HRSRC res = FindResource(hInst, MAKEINTRESOURCE(IDR_C64FONT), RT_RCDATA);
+	if (!res) {
+		return FALSE;
+	}
+	HGLOBAL res_handle = LoadResource(NULL, res);
+	if (!res_handle) {
+		return FALSE;
+	}
+
+	void *res_data = LockResource(res_handle);
+	DWORD res_size = SizeofResource(NULL, res);
+
+	Monitor::Init(res_data, res_size);
 
 	return TRUE;
 }
