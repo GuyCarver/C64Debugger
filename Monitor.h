@@ -53,6 +53,7 @@ namespace Monitor
 
 	//----------------------------------------------------------------
 	///Initialize Communications with VICE
+	/// apFontData, aFontDataSize point to ttf data
 	bool Init( void *apFontData, int32_t aFontDataSize );
 
 	//----------------------------------------------------------------
