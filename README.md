@@ -4,9 +4,10 @@ C64Debugger
 C64Debugger is a Windows only binary monitor for the [VICE emulator](https://sourceforge.net/projects/vice-emu/).
 This is a Visual Studio 2022 Windows project building with the C++20 toolset.
 
-## Submodules
+## Submodules/includes
  - [ImGui](https://github.com/ocornut/imgui)
- - [Nlohmann Json](https://github.com/nlohmann/json), Not really a submodule as I only needed the single file header.
+ - [Nlohmann Json](https://github.com/nlohmann/json)
+ - [ImGui File Browser](https://github.com/AirGuanZ/imgui-filebrowser)
 
 ## Usage
  - I use [KickAssembler](http://www.theweb.dk/KickAssembler/Main.html#frontpage) for my projects so symbols are loaded from a .vs file.
