@@ -33,18 +33,46 @@
 //----------------------------------------------------------------
 void FileMenu(  )
 {
+	if (ImGui::MenuItem("Vice Path", "Ctrl+V")) {
+		pFileDialogResult = []( const std::filesystem::path aSelected ) {
+			VicePath = aSelected.string();
+		};
+		FileDialog.SetTitle("Vice Exe");
+		FileDialog.SetTypeFilters({".exe"});
+		std::filesystem::path vp(VicePath);
+
+		FileDialog.SetPwd(vp.remove_filename());
+		FileDialog.Open();
+	}
+
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip(VicePath.c_str());
+	}
+	ImGui::MenuItem("AutoStart", "", &bAutoStartVice);
+
+	ImGui::Separator();
+
 	if (ImGui::MenuItem("Open Prg", "Ctrl+O")) {
-		OpenProg = true;
+		pFileDialogResult = []( const std::filesystem::path aSelected ) {
+			Program::Load(aSelected);
+		};
 		FileDialog.SetTitle("Open Program");
 		FileDialog.SetTypeFilters({".prg"});
 		FileDialog.Open();
 	}
+
 	if (ImGui::MenuItem("Open Labels", "Ctrl+L")) {
-		OpenProg = false;
+		pFileDialogResult = []( const std::filesystem::path aSelected ) {
+			Labels::Load(aSelected.string().c_str());
+			Code::UpdateDisView();
+		};
 		FileDialog.SetTitle("Open Labels");
 		FileDialog.SetTypeFilters({".vs"});
 		FileDialog.Open();
 	}
+
+	ImGui::Separator();
+
 	if (ImGui::MenuItem("Soft Reset", "Ctrl+R")) {
 		Send(Command::SoftResetCommand);
 	}

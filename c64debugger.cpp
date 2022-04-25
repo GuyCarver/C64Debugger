@@ -4,8 +4,12 @@
 #include "c64debugger.h"
 #include "Monitor.h"
 #include "Program.h"
+
+#include <windows.h>
 #include <chrono>
+#include <shellapi.h>
 #include <thread>
+#include <tlhelp32.h>
 
 /*{
 [ ] Remove Windows menu
@@ -96,6 +100,56 @@ std::vector<std::string> ParseParams( LPWSTR lpCmdLine )
 		args.push_back(cmdline.substr(start, end - start));
 	}
 	return args;
+}
+
+//----------------------------------------------------------------
+///Return if given app (appname.exe) is running
+bool IsProcessRunning( const char *apApp )
+{
+	//Isolate the file name from a whole path
+	std::filesystem::path fp(apApp);
+	auto fname = fp.filename();
+
+	bool exists = false;
+	PROCESSENTRY32 entry;
+	entry.dwSize = sizeof(PROCESSENTRY32);
+
+	HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+
+	if (Process32First(snapshot, &entry)) {
+		while (Process32Next(snapshot, &entry)) {
+			if (!_stricmp(entry.szExeFile, fname.string().c_str())) {
+				exists = true;
+			}
+		}
+	}
+
+	CloseHandle(snapshot);
+
+	return exists;
+}
+
+//----------------------------------------------------------------
+///Run an app
+///apApp = Exe full path
+///apParams = Optional command line parameter string
+void RunApp( const char *apApp, const char *apParams = nullptr )
+{
+	if (!IsProcessRunning(apApp)) {
+		SHELLEXECUTEINFO ShExecInfo;
+
+		ShExecInfo.cbSize = sizeof(ShExecInfo);
+			ShExecInfo.fMask = 0;
+			ShExecInfo.hwnd = nullptr;
+			ShExecInfo.lpVerb = "open";
+			ShExecInfo.lpFile = apApp;
+			ShExecInfo.lpParameters = apParams;
+			ShExecInfo.lpDirectory = nullptr;
+			ShExecInfo.nShow = SW_MAXIMIZE;
+			ShExecInfo.hInstApp = nullptr;
+
+		ShellExecuteEx(&ShExecInfo);
+	}
 }
 
 //----------------------------------------------------------------

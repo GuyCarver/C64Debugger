@@ -59,7 +59,9 @@
 
 #include <winsock2.h>
 
-/* Notes:
+/*{
+
+Notes:
 	The binary monitor has a checkpoint system that may be used to report
 	when memory is accessed for read/write or execute. However if it is
 	used to monitor non-halting access, it may cause a large amount of
@@ -71,14 +73,12 @@
 
 	This may change in the future by always using checkpoints that break allowing
 	us to throttle the input stream.
-*/
-
-/*{
-
-[*] Shore up connection loss/reconnect. Mostly done except after reconnection VICE will stop communicating
-[ ] Need some sort of callback for new connection so we can refresh displays
 
 }*/
+
+//This is defined in c64debugger.cpp.  Can't put it in Monitor.cpp as
+// include of windows conflicts with winsock2.
+void RunApp( const char *apApp, const char *apParams = nullptr );
 
 namespace Monitor
 {
@@ -88,7 +88,10 @@ constexpr float FONTSIZE = 13.0;
 
 ImFont *pC64Font = nullptr;
 uint32_t CommDelay = 0;							//Counter for no response
+std::string VicePath("");						//Path to VICE exe to run
 VICESTATE eState = VICESTATE::DISCONNECTED;		//Current known state of VICE
+
+bool bAutoStartVice = false;					//True to autostart VICE on startup if not running
 bool Stopped = false;							//Flag to indicate we want VICE stopped
 
 const char HelpText[] =
@@ -111,7 +114,9 @@ const char *StateString[] =
 #include "MonitorThread.ipp"
 
 ImGui::FileBrowser FileDialog;
-bool OpenProg = false;							//Hack to determine what type of file the Dialog is opening
+
+using FILEDIALOGFN = std::function<void( const std::filesystem::path )>;
+FILEDIALOGFN pFileDialogResult = nullptr;		//Hack to set process to handle FileDialog input
 
 //----------------------------------------------------------------
 ///Save settings to json file
@@ -125,6 +130,8 @@ void SaveSettings(  )
 		//Save file dialog path
 		auto dir = FileDialog.GetPwd();
 		data["path"] = dir.c_str();
+		data["VicePath"] = VicePath.c_str();
+		data["AutoStartVice"] = bAutoStartVice;
 
 		//Save window active states (size/position is handled in imgui.ini)
 		// and whatever other data
@@ -147,9 +154,18 @@ void LoadSettings(  )
 	if (strm.good()) {
 		auto data = nlohmann::json::parse(strm);
 		auto p = data["path"];					//Read path for file open dialog
-		if (!p.empty()) {
+		if (!p.is_null()) {
 			FileDialog.SetPwd(p);
 		}
+		auto vp = data["VicePath"];
+		if (!vp.is_null()) {
+			VicePath = vp;
+		}
+		auto bautoStart = data["AutoStartVice"];
+		if (!bautoStart.is_null()) {
+			bAutoStartVice = bautoStart;
+		}
+
 		//Read settings for modules
 		Code::FromJson(data);
 		Memory::FromJson(data);
@@ -190,6 +206,7 @@ bool Init( void *apFontData, int32_t aFontDataSize )
 	if (pC64Font) {
 		//Change fallback char used for unrecognized char to '.'
 		pC64Font->FallbackGlyph = pC64Font->FindGlyph(static_cast<ImWchar>('.'));
+		pC64Font->ContainerAtlas->ConfigData[pC64Font->ConfigDataCount].FontDataOwnedByAtlas = false;	//From resource, so don't free
 	}
 	else {
 		pC64Font = ImGui::GetFont();
@@ -197,7 +214,12 @@ bool Init( void *apFontData, int32_t aFontDataSize )
 
 	[[maybe_unused]] auto p = new Thread();
 
+	//NOTE: This must happen after the thread is created or cascading asserts will occur
 	LoadSettings();								//Load settings
+
+	if (bAutoStartVice) {
+		RunApp(VicePath.c_str(), "-binarymonitor");
+	}
 
 	return true;
 }
@@ -276,14 +298,10 @@ void Display(  )
 
 	FileDialog.Display();
 
-	//File Dalog selection
+	//File Dailog selection
 	if (FileDialog.HasSelected()) {
-		if (OpenProg) {
-			Program::Load(FileDialog.GetSelected());
-		}
-		else {
-			Labels::Load(FileDialog.GetSelected().string().c_str());
-			Code::UpdateDisView();
+		if (pFileDialogResult) {
+			pFileDialogResult(FileDialog.GetSelected());
 		}
 		FileDialog.ClearSelected();
 	}
