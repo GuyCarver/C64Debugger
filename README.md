@@ -31,4 +31,3 @@ Key commands reflect the default commands in Visual Studio
  - Remote connection support
  - Memory Breakpoints
  - Label support in Assembler
- - Auto start VICE if not running
