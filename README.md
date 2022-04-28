@@ -5,7 +5,7 @@ C64Debugger is a Windows only binary monitor for the [VICE emulator](https://sou
 This is a Visual Studio 2022 Windows project building with the C++20 toolset.
 
 ## Submodules/includes
- - [ImGui](https://github.com/ocornut/imgui)
+ - [ImGui](https://github.com/ocornut/imgui) - Now cloned as I made modifications to support Full Ascii char set.
  - [Nlohmann Json](https://github.com/nlohmann/json)
  - [ImGui File Browser](https://github.com/AirGuanZ/imgui-filebrowser)
 
