@@ -32,7 +32,6 @@
 
 constexpr uint32_t BUFFERSIZE = 0x10000;		//Size of input stream
 constexpr DWORD TIMEOUT = 30;					//30 ms
-constexpr uint32_t PORT = 6502;
 
 using UniqueLock = std::unique_lock<std::mutex>;
 using ResponseArray = std::vector<COMMAND>;
@@ -256,9 +255,9 @@ private:
 		if (auto res = WSAStartup(dllVersion, &wsaData); !res) {
 			if (Sock = socket(AF_INET, SOCK_STREAM, 0); Sock >= 0) {
 				struct sockaddr_in server;
-				server.sin_addr.s_addr = inet_addr("127.0.0.1");
+				server.sin_addr.s_addr = inet_addr(ViceIP);
 				server.sin_family = AF_INET;
-				server.sin_port = htons(PORT);
+				server.sin_port = htons(VicePort);
 				const DWORD to = TIMEOUT;
 				//Set the receiver socket timeout
 				setsockopt(Sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&to), sizeof(to));

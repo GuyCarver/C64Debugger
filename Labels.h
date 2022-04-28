@@ -34,6 +34,8 @@
 #include "types.h"
 #include "json/json.hpp"
 
+#include <filesystem>
+
 namespace Labels
 {
 
@@ -70,7 +72,7 @@ void FromJson( nlohmann::json &arData );
 
 //----------------------------------------------------------------
 ///Load labels from given file
-bool Load( const char *apFile );
+bool Load( std::filesystem::path aPath );
 
 //----------------------------------------------------------------
 ///Enable window

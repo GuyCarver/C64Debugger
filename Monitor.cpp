@@ -40,8 +40,10 @@
 #include "Registers.h"
 #include "Response.h"
 
+#include <algorithm>
 #include <assert.h>
 #include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <imgui.h>
 #include <iomanip>
@@ -74,6 +76,10 @@ Notes:
 	This may change in the future by always using checkpoints that break allowing
 	us to throttle the input stream.
 
+	Ok, The Memory View is using a checkpoint to get updates on memory writes, but
+	 it is only enabled when VICE is stopped (break) so we only receive checkpoint
+	 responses when stepping code.
+
 }*/
 
 //This is defined in c64debugger.cpp.  Can't put it in Monitor.cpp as
@@ -88,12 +94,15 @@ constexpr float FONTSIZE = 13.0;
 
 ImFont *pC64Font = nullptr;
 uint32_t CommDelay = 0;							//Counter for no response
+char ViceIP[64] = "127.0.0.1";					//IP Address of vice
+uint16_t VicePort = 6502;
 std::string VicePath("");						//Path to VICE exe to run
 VICESTATE eState = VICESTATE::DISCONNECTED;		//Current known state of VICE
 
 bool bAutoStartVice = false;					//True to autostart VICE on startup if not running
 bool Stopped = false;							//Flag to indicate we want VICE stopped
 
+//----------------------------------------------------------------
 const char HelpText[] =
 "F5 = Run\n"
 "F8 = Toggle Follow IP\n"
@@ -113,10 +122,47 @@ const char *StateString[] =
 
 #include "MonitorThread.ipp"
 
-ImGui::FileBrowser FileDialog;
-
 using FILEDIALOGFN = std::function<void( const std::filesystem::path )>;
 FILEDIALOGFN pFileDialogResult = nullptr;		//Hack to set process to handle FileDialog input
+ImGui::FileBrowser FileDialog;
+std::vector<std::filesystem::path> FileHistory;	//History of loaded files
+constexpr uint32_t MaxHistorySize = 10;
+
+//----------------------------------------------------------------
+///Add given path to FileHistory if unique
+void AddToHistory( const std::filesystem::path &arPath )
+{
+	bool unique = true;
+
+	//Look for arPath in FileHistory
+	for ( const auto &f : FileHistory ) {
+		if (std::filesystem::equivalent(f, arPath)) {
+			unique = false;
+			break;
+		}
+	}
+	//If not already in history add at the end
+	if (unique) {
+		//If at maximum size pop the 1st element off
+		if (FileHistory.size() == MaxHistorySize) {
+			FileHistory.erase(FileHistory.begin());
+		}
+		FileHistory.push_back(arPath);
+	}
+}
+
+//----------------------------------------------------------------
+///Determine file type by extension and call correct Load()
+void OpenAFile( const std::filesystem::path aPath )
+{
+	auto ext = aPath.extension();
+	if (ext == ".vs") {
+		Labels::Load(aPath);
+	}
+	else if (ext == ".prg") {
+		Program::Load(aPath);
+	}
+}
 
 //----------------------------------------------------------------
 ///Save settings to json file
@@ -132,6 +178,9 @@ void SaveSettings(  )
 		data["path"] = dir.c_str();
 		data["VicePath"] = VicePath.c_str();
 		data["AutoStartVice"] = bAutoStartVice;
+		data["Address"] = ViceIP;
+		data["Port"] = VicePort;
+		data["FileHistory"] = FileHistory;
 
 		//Save window active states (size/position is handled in imgui.ini)
 		// and whatever other data
@@ -154,16 +203,29 @@ void LoadSettings(  )
 	if (strm.good()) {
 		auto data = nlohmann::json::parse(strm);
 		auto p = data["path"];					//Read path for file open dialog
-		if (!p.is_null()) {
+		if (p.is_string()) {
 			FileDialog.SetPwd(p);
 		}
 		auto vp = data["VicePath"];
-		if (!vp.is_null()) {
+		if (vp.is_string()) {
 			VicePath = vp;
 		}
 		auto bautoStart = data["AutoStartVice"];
-		if (!bautoStart.is_null()) {
+		if (bautoStart.is_boolean()) {
 			bAutoStartVice = bautoStart;
+		}
+		auto ip = data["Address"];
+		if (ip.is_string()) {
+			std::string ip2 = ip;
+			ip2.copy(ViceIP, sizeof(ViceIP));
+		}
+		auto port = data["Port"];
+		if (ip.is_number_integer()) {
+			VicePort = port;
+		}
+		auto fh = data["FileHistory"];
+		if (fh.is_array()) {
+			fh.get_to(FileHistory);
 		}
 
 		//Read settings for modules
@@ -207,6 +269,7 @@ bool Init( void *apFontData, int32_t aFontDataSize )
 		//Change fallback char used for unrecognized char to '.'
 		pC64Font->FallbackGlyph = pC64Font->FindGlyph(static_cast<ImWchar>('.'));
 		pC64Font->ContainerAtlas->ConfigData[pC64Font->ConfigDataCount].FontDataOwnedByAtlas = false;	//From resource, so don't free
+		pC64Font->ContainerAtlas->ConfigData[pC64Font->ConfigDataCount].FullAscii = true;
 	}
 	else {
 		pC64Font = ImGui::GetFont();

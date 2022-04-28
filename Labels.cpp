@@ -399,9 +399,9 @@ void FromJson( nlohmann::json &arData )
 }
 
 //----------------------------------------------------------------
-bool Load( const char *apFile )
+bool Load( std::filesystem::path aPath )
 {
-	return pView ? pView->Load(apFile) : false;
+	return pView ? pView->Load(aPath.string().c_str()) : false;
 }
 
 //----------------------------------------------------------------

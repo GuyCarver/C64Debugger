@@ -47,18 +47,12 @@
 
 /*{
 TODO:
-[ ] Fix activation to try to keep disassembly view active
-[*] Why does every other key press for stepping not register? This was due to F10 being a
-	windows syskey to toggle menubar activation I added a syskeyup event to correctly
-	report the up event to ImGui.
-[*] Added dropdown for label selection for goto. In but only works once
 [*] Add scrolling
 	[ ] Add extra lines above/below display area to allow for smoother scrolling to next legit line
 	[*] Add array of OpCode pointers to store for each line so we can get some info about the line
 [ ] Add tab stops, I can't figure out how to modify this.  I only have tab stops for the buttons
 [*] Add editing
 	[ ] parse for labels
-[ ] More than 1 window?
 [ ] Refactor MemoryView and CodeView to share code using components
 [ ] Add Tooltips for opcodes
 [ ] Ctrl+click on line will jump to address if op has an address

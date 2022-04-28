@@ -33,6 +33,41 @@
 //----------------------------------------------------------------
 void FileMenu(  )
 {
+	if (ImGui::MenuItem("Open Prg", "Ctrl+O")) {
+		pFileDialogResult = []( const std::filesystem::path aSelected ) {
+			AddToHistory(aSelected);
+			Program::Load(aSelected);
+		};
+		FileDialog.SetTitle("Open Program");
+		FileDialog.SetTypeFilters({".prg"});
+		FileDialog.Open();
+	}
+
+	if (ImGui::MenuItem("Open Labels", "Ctrl+L")) {
+		pFileDialogResult = []( const std::filesystem::path aSelected ) {
+			AddToHistory(aSelected);
+			Labels::Load(aSelected);
+			Code::UpdateDisView();
+		};
+		FileDialog.SetTitle("Open Labels");
+		FileDialog.SetTypeFilters({".vs"});
+		FileDialog.Open();
+	}
+
+	if (ImGui::BeginMenu("Open Recent")) {
+		//Loop in reverse for files
+		std::for_each(FileHistory.rbegin(), FileHistory.rend(), []( auto aPath ) {
+			if (ImGui::MenuItem(aPath.string().c_str())) {
+				OpenAFile(aPath);
+			}
+		});
+		ImGui::EndMenu();
+	}
+}
+
+//----------------------------------------------------------------
+void ViceMenu(  )
+{
 	if (ImGui::MenuItem("Vice Path", "Ctrl+V")) {
 		pFileDialogResult = []( const std::filesystem::path aSelected ) {
 			VicePath = aSelected.string();
@@ -52,23 +87,10 @@ void FileMenu(  )
 
 	ImGui::Separator();
 
-	if (ImGui::MenuItem("Open Prg", "Ctrl+O")) {
-		pFileDialogResult = []( const std::filesystem::path aSelected ) {
-			Program::Load(aSelected);
-		};
-		FileDialog.SetTitle("Open Program");
-		FileDialog.SetTypeFilters({".prg"});
-		FileDialog.Open();
-	}
-
-	if (ImGui::MenuItem("Open Labels", "Ctrl+L")) {
-		pFileDialogResult = []( const std::filesystem::path aSelected ) {
-			Labels::Load(aSelected.string().c_str());
-			Code::UpdateDisView();
-		};
-		FileDialog.SetTitle("Open Labels");
-		FileDialog.SetTypeFilters({".vs"});
-		FileDialog.Open();
+	if (ImGui::BeginMenu("Address")) {
+		ImGui::InputText("##addr", ViceIP, sizeof(ViceIP));
+		ImGui::InputScalar("Port", ImGuiDataType_U16, &VicePort, NULL, NULL, "%u");
+		ImGui::EndMenu();
 	}
 
 	ImGui::Separator();
@@ -93,8 +115,12 @@ void ViewMenu(  )
 void MainMenu(  )
 {
 	if (ImGui::BeginMainMenuBar()) {
-		if (ImGui::BeginMenu("Vice")) {
+		if (ImGui::BeginMenu("File")) {
 			FileMenu();
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("Vice")) {
+			ViceMenu();
 			ImGui::EndMenu();
 		}
 		if (ImGui::BeginMenu("View")) {

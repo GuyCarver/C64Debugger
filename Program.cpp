@@ -47,10 +47,10 @@ constexpr uint32_t FILELEN = 0xff;				//Maximum file name size
 CommandPtr LoadFileCommand = Command::Create(COMMAND::AUTOSTART, FILELEN);
 
 //----------------------------------------------------------------
-bool Load( const std::filesystem::path &arPath )
+bool Load( std::filesystem::path aPath )
 {
 	bool bres;
-	const auto &rname = arPath.string();
+	const auto &rname = aPath.string();
 	auto len = rname.length() + 1;				//+ 1 to include null termination
 	if (bres = (len <= FILELEN); bres) {
 		LoadFileCommand->Reset();
@@ -60,9 +60,8 @@ bool Load( const std::filesystem::path &arPath )
 		LoadFileCommand->Add(rname.c_str());	//Add file name
 		Monitor::Send(LoadFileCommand);			//Send command
 
-		std::filesystem::path vsPath = arPath;
-		vsPath.replace_extension(".vs");		//Change extension to .vs
-		Labels::Load(vsPath.string().c_str());	//Attempt to load .vs file
+		aPath.replace_extension(".vs");			//Change extension to .vs
+		Labels::Load(aPath);					//Attempt to load .vs file
 
 		//NOTE: We could wait for response to load .vs file
 	}

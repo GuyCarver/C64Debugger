@@ -39,5 +39,5 @@ namespace Program
 {
 	//----------------------------------------------------------------
 	///Send load command for given program to VICE and load .vs file
-	bool Load( const std::filesystem::path &arPath );
+	bool Load( std::filesystem::path aPath );
 }	//namespace Program
