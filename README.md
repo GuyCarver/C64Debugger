@@ -27,6 +27,10 @@ Key commands reflect the default commands in Visual Studio
  - **F11** - Step Into
  - **Shift+F11** - Step Out
 
+### License
+
+C64Debugger is licensed under the MIT License, see [LICENSE.txt](https://github.com/GuyCarver/ImGuiFullAscii/blob/29f7415e7f240b235ec0394def1895f5c06f2070/LICENSE.txt) for more information.
+
 ### TODO:
  - Remote connection support
  - Memory Breakpoints
